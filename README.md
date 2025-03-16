@@ -46,54 +46,62 @@ This project is a **gift** for my wife, who enjoys looking up information about 
 
 ---
 
+## Implementation
+
+### 1. Core Components
+- **ADS-B Data Retrieval:** Capture real-time aircraft data using `librtlsdr` and `dump1090`.
+- **Data Filtering:** Identify aircraft within the 25-mile radius.
+- **Data Processing:** Convert ADS-B signals into a structured format.
+- **E-Ink Rendering:** Display filtered aircraft data in a readable format.
+- **Multithreading:** Ensure smooth operation by handling data retrieval and display updates concurrently.
+
+### 2. Directory Structure
+```
+InkJets/
+├── src/
+│   ├── main.cpp  # Entry point
+│   ├── adsb_parser.cpp  # Parses ADS-B data
+│   ├── display.cpp  # Handles e-ink rendering
+│   ├── utils.cpp  # Helper functions
+├── include/
+│   ├── adsb_parser.h
+│   ├── display.h
+│   ├── utils.h
+├── assets/
+│   ├── fonts/  # Font files for e-ink display
+│   ├── icons/  # Optional icons for UI
+├── CMakeLists.txt  # Build configuration
+├── README.md  # Documentation
+```
+
+---
+
 ## End-User Setup Instructions
 
 ### 1. Update the System
-Before installing any packages, update the package lists and upgrade existing packages:
 ```bash
 sudo apt update && sudo apt upgrade -y
 ```
 
 ### 2. Install Required Libraries
-#### Libraries for ADS-B Data Processing
 ```bash
-sudo apt install librtlsdr-dev libusb-1.0-0-dev
+sudo apt install librtlsdr-dev libusb-1.0-0-dev sqlite3 libsqlite3-dev libspdlog-dev wiringpi libwiringpi-dev libboost-dev
 ```
-- **librtlsdr-dev** – Required for handling ADS-B signals from RTL-SDR dongles.
-- **libusb-1.0-0-dev** – Required for interfacing with USB devices.
 
-#### SQLite Support (Optional, for Flight Data Storage)
-```bash
-sudo apt install sqlite3 libsqlite3-dev
-```
-- **sqlite3** – Command-line tool for SQLite.
-- **libsqlite3-dev** – Development headers for SQLite integration.
-
-#### Libraries for E-Ink Display (SPI/I2C Support)
-```bash
-sudo apt install libspdlog-dev wiringpi libwiringpi-dev libboost-dev
-```
-- **wiringpi** – Required for GPIO communication (SPI/I2C support).
-- **libwiringpi-dev** – Development headers for WiringPi.
-- **libspdlog-dev** – Logging library for debugging.
-- **libboost-dev** – Provides additional C++ functionality (may be useful for multithreading or networking).
-
-### 3. Enable SPI/I2C on Raspberry Pi (If Using SPI-Based E-Ink)
+### 3. Enable SPI/I2C on Raspberry Pi
 ```bash
 sudo raspi-config
 ```
-Then:
-1. Go to **Interfacing Options**
-2. Enable **SPI** and **I2C**
-3. Reboot the system:
-   ```bash
-   sudo reboot
-   ```
+- Go to **Interfacing Options**
+- Enable **SPI** and **I2C**
+- Reboot the system:
+```bash
+sudo reboot
+```
 
 ### 4. Clone the Project Repository
-Once dependencies are installed, clone the repository:
 ```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/InkJets.git
+git clone https://github.com/BobGallardo/InkJets.git
 cd InkJets
 ```
 
