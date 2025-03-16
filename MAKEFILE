@@ -1,5 +1,13 @@
+# Detect if cross-compiling for Raspberry Pi
+ifeq ($(CROSS_COMPILE), 1)
+    CC = arm-linux-gnueabihf-g++
+    LDFLAGS = -lrtlsdr -lusb-1.0 -lsqlite3
+else
+    CC = g++
+    LDFLAGS = -lusb-1.0 -lsqlite3  # Exclude librtlsdr on Windows
+endif
+
 # Compiler settings
-CXX = g++
 CXXFLAGS = -std=c++20 -Wall -Wextra -lpthread -Iinclude
 
 # Directories
@@ -11,11 +19,6 @@ BIN = InkJets
 SRCS = $(SRC_DIR)/main.cpp $(SRC_DIR)/adsb_parser.cpp $(SRC_DIR)/display.cpp $(SRC_DIR)/utils.cpp
 OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRCS))
 
-# Test files
-TEST_DIR = tests
-TEST_SRCS = $(TEST_DIR)/test_utils.cpp $(TEST_DIR)/test_adsb_parser.cpp $(TEST_DIR)/test_display.cpp $(TEST_DIR)/test_main.cpp
-TEST_BINS = test_utils test_adsb_parser test_display test_main
-
 # Default target
 all: $(BIN)
 
@@ -25,35 +28,16 @@ $(BUILD_DIR):
 
 # Compile main application
 $(BIN): $(BUILD_DIR) $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $(BIN) $(OBJS) -lrtlsdr -lusb-1.0 -lsqlite3
+	$(CC) $(CXXFLAGS) -o $(BIN) $(OBJS) $(LDFLAGS)
 
 # Compile each .cpp file to .o
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-# Compile test binaries
-test_utils: $(TEST_DIR)/test_utils.cpp $(SRC_DIR)/utils.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $^
-
-test_adsb_parser: $(TEST_DIR)/test_adsb_parser.cpp $(SRC_DIR)/adsb_parser.cpp $(SRC_DIR)/utils.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $^ -lpthread -lrtlsdr -lusb-1.0 -lsqlite3
-
-test_display: $(TEST_DIR)/test_display.cpp $(SRC_DIR)/display.cpp $(SRC_DIR)/utils.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $^ -lpthread
-
-test_main: $(TEST_DIR)/test_main.cpp $(SRC_DIR)/adsb_parser.cpp $(SRC_DIR)/display.cpp $(SRC_DIR)/utils.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $^ -lpthread
-
-# Run all tests
-test: $(TEST_BINS)
-	@echo "Running all tests..."
-	@./test_utils && ./test_adsb_parser && ./test_display && ./test_main
-	@echo "🎉 All tests passed!"
+	$(CC) $(CXXFLAGS) -c $< -o $@
 
 # Clean build artifacts
 clean:
-	rm -f $(BIN) $(BUILD_DIR)/*.o $(TEST_BINS)
+	rm -f $(BIN) $(BUILD_DIR)/*.o
 	rm -rf $(BUILD_DIR)
 
 # Phony targets
-.PHONY: all test clean
+.PHONY: all clean

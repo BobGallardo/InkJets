@@ -2,11 +2,13 @@
 #define UTILS_H
 
 #include <string>
+#include <vector>
+#include "adsb_parser.h"
 
-// Function prototypes
-double knots_to_mph(double knots);
-std::string format_altitude(int altitude);
-std::string get_current_time();
+// Logging function
 void log_message(const std::string& message);
 
-#endif
+// Function to retrieve stored aircraft data
+std::vector<Aircraft> load_cached_data();
+
+#endif // UTILS_H

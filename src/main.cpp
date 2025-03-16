@@ -1,13 +1,13 @@
 #include "adsb_parser.h"
-#include "display.h"
-#include "utils.h"
+#include "display.h"  // Ensure this is included
+#include "utils.h"    // Ensure this is included
 #include <iostream>
 #include <thread>
 #include <vector>
 
-// Function that handles ADS-B data retrieval
+// Function handling ADS-B data retrieval
 void adsb_worker(std::vector<Aircraft>& aircrafts) {
-    initialize_adsb(); // Initialize ADS-B processing
+    initialize_adsb();
     while (true) {
         aircrafts = fetch_adsb_data();
         aircrafts = filter_aircrafts(aircrafts);
@@ -16,12 +16,12 @@ void adsb_worker(std::vector<Aircraft>& aircrafts) {
     }
 }
 
-// Function that handles e-ink display updates
+// Function handling display updates
 void display_worker(const std::vector<Aircraft>& aircrafts) {
-    initialize_display();
+    initialize_display();  // Now declared correctly
     while (true) {
-        std::vector<Aircraft> data = load_cached_data();
-        render_display(data);
+        std::vector<Aircraft> data = load_cached_data();  // Now declared correctly
+        render_display(data);  // Now declared correctly
         std::this_thread::sleep_for(std::chrono::minutes(1)); // Update every minute
     }
 }
@@ -29,13 +29,12 @@ void display_worker(const std::vector<Aircraft>& aircrafts) {
 int main() {
     std::vector<Aircraft> aircrafts;
 
-    // Start ADS-B worker in a separate thread
+    // Start ADS-B worker thread
     std::thread adsb_thread(adsb_worker, std::ref(aircrafts));
 
-    // Start display worker in another thread
+    // Start display worker thread
     std::thread display_thread(display_worker, std::cref(aircrafts));
 
-    // Keep main thread running
     adsb_thread.join();
     display_thread.join();
 

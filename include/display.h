@@ -3,12 +3,10 @@
 
 #include <vector>
 #include <string>
-#include "adsb_parser.h"  // Aircraft struct
+#include "adsb_parser.h"
 
-// Function prototypes
+// Function prototypes for console output
 void initialize_display();
 void render_display(const std::vector<Aircraft>& aircrafts);
-void draw_text(const std::string& text, int x, int y);
-std::vector<Aircraft> load_cached_data();
 
-#endif
+#endif // DISPLAY_H
