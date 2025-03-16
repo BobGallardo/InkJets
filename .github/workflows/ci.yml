@@ -1,0 +1,30 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y librtlsdr-dev libusb-1.0-0-dev sqlite3 libsqlite3-dev g++ make cmake ninja-build
+
+      - name: Build project
+        run: make
+
+      - name: Run tests
+        run: make test
