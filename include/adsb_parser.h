@@ -1,5 +1,6 @@
 #ifndef ADSB_PARSER_H
 #define ADSB_PARSER_H
+void initialize_adsb();
 
 #include <string>
 #include <vector>

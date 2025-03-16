@@ -1,0 +1,7 @@
+{
+    "aircraft": [
+      { "hex": "ABC123", "flight": "Flight1", "alt_baro": 35000, "gs": 450, "lat": 37.7749, "lon": -122.4194, "track": 180 },
+      { "hex": "XYZ789", "flight": "Flight2", "alt_baro": 10000, "gs": 300, "lat": 38.0000, "lon": -122.5000, "track": 90 }
+    ]
+  }
+  
