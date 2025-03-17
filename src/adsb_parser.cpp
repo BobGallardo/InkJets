@@ -1,87 +1,104 @@
 #include "adsb_parser.h"
 #include "utils.h"
-#include <iostream>
 #include <fstream>
-#include <vector>
-#include <string>
-#include <unistd.h>
-#include <limits.h>
+#include <iostream>
 #include <nlohmann/json.hpp>
 
-using json = nlohmann::json;
+#define ADSB_DATA_FILE "/run/dump1090-fa/aircraft.json"  // Live ADS-B JSON file from dump1090-fa
 
-// Get the directory of the running executable
-std::string get_executable_path() {
-    char result[PATH_MAX];
-    ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
-    std::string exePath = (count != -1) ? std::string(result, count) : "";
-    size_t lastSlash = exePath.find_last_of("/");
-    return (lastSlash == std::string::npos) ? "./" : exePath.substr(0, lastSlash + 1);
-}
-
-// Initialize ADS-B processing
-void initialize_adsb() {
-    log_message("ADS-B system initialized.");
-}
-
-// Fetch aircraft data from ADS-B JSON file
+/**
+ * Fetches live ADS-B data from dump1090-fa JSON output.
+ * Parses aircraft data and returns a vector of Aircraft objects.
+ */
 std::vector<Aircraft> fetch_adsb_data() {
-    std::vector<Aircraft> aircraftList;
-    std::string adsbFilePath = get_executable_path() + "adsb_data.json";
+    std::vector<Aircraft> aircraft_list;
+    std::ifstream file(ADSB_DATA_FILE);
 
-    std::ifstream file(adsbFilePath);
     if (!file) {
-        log_message("Error: Could not open ADS-B data file at " + adsbFilePath);
-        return aircraftList;
+        log_message("[ERROR] Could not open live ADS-B data file: " + std::string(ADSB_DATA_FILE));
+        return aircraft_list;
     }
 
     try {
-        json adsbData;
-        file >> adsbData;
+        nlohmann::json jsonData;
+        file >> jsonData;
 
-        if (!adsbData.contains("aircraft")) {
-            log_message("Warning: No 'aircraft' key found in ADS-B data.");
-            return aircraftList;
-        }
+        for (const auto& ac : jsonData["aircraft"]) {
+            if (ac.contains("hex") && ac.contains("alt_baro") && ac.contains("gs")) {
+                Aircraft aircraft;
+                aircraft.hex = ac.value("hex", "UNKNOWN");
+                aircraft.altitude = ac.value("alt_baro", 0);
+                aircraft.speed = ac.value("gs", 0);
+                aircraft.heading = ac.value("track", 0);
+                aircraft.flight = ac.value("flight", "N/A");
+                aircraft.latitude = ac.value("lat", 0.0);
+                aircraft.longitude = ac.value("lon", 0.0);
 
-        for (const auto& ac : adsbData["aircraft"]) {
-            Aircraft a;
-            a.flight = ac.value("flight", "UNKNOWN");
-            a.altitude = ac.value("alt_baro", 0);
-            a.speed = ac.value("gs", 0);
-            a.heading = ac.value("track", 0);
-            aircraftList.push_back(a);
+                aircraft_list.push_back(aircraft);
+            }
         }
+        log_message("[INFO] Successfully loaded live ADS-B aircraft data.");
     } catch (const std::exception& e) {
-        log_message("Error parsing ADS-B JSON: " + std::string(e.what()));
+        log_message("[ERROR] Failed to parse ADS-B JSON: " + std::string(e.what()));
     }
-
-    return aircraftList;
+    return aircraft_list;
 }
 
-// Filter out invalid or unwanted aircraft
-std::vector<Aircraft> filter_aircrafts(const std::vector<Aircraft>& aircrafts) {
-    std::vector<Aircraft> filtered;
+/**
+ * Filters aircraft within a 25-mile radius of a given home location.
+ */
+std::vector<Aircraft> filter_aircrafts(const std::vector<Aircraft>& aircrafts, double home_lat, double home_lon) {
+    std::vector<Aircraft> filtered_list;
+
     for (const auto& ac : aircrafts) {
-        if (ac.altitude > 0) { // Only show aircraft above ground
-            filtered.push_back(ac);
+        if (ac.latitude != 0.0 && ac.longitude != 0.0) {
+            double distance = calculate_distance(home_lat, home_lon, ac.latitude, ac.longitude);
+            if (distance <= 25.0) {
+                filtered_list.push_back(ac);
+            }
         }
     }
-    return filtered;
+
+    log_message("[INFO] Filtered " + std::to_string(filtered_list.size()) + " aircraft within 25 miles.");
+    return filtered_list;
 }
 
-// Store aircraft data in a cache file
-void store_data(const std::vector<Aircraft>& aircraftList) {
-    std::string cacheFilePath = get_executable_path() + "aircraft_cache.txt";
-    std::ofstream cache(cacheFilePath);
-    if (!cache) {
-        log_message("Error: Could not write to " + cacheFilePath);
+/**
+ * Stores the most recent aircraft data in a local cache file.
+ */
+void store_data(const std::vector<Aircraft>& aircrafts) {
+    std::ofstream file("aircraft_cache.txt");
+
+    if (!file) {
+        log_message("[ERROR] Could not write to aircraft_cache.txt.");
         return;
     }
 
-    for (const auto& ac : aircraftList) {
-        cache << ac.flight << ", " << ac.altitude << ", " << ac.speed << ", " << ac.heading << "\n";
+    for (const auto& ac : aircrafts) {
+        file << ac.flight << " | " << ac.altitude << " ft | " << ac.speed << " knots | " << ac.latitude << "," << ac.longitude << "\n";
+    }
+    log_message("[INFO] Successfully wrote aircraft data to cache.");
+}
+
+/**
+ * Loads cached aircraft data from the last successful fetch.
+ */
+std::vector<Aircraft> load_cached_data() {
+    std::vector<Aircraft> cached_aircrafts;
+    std::ifstream file("aircraft_cache.txt");
+
+    if (!file) {
+        log_message("[WARNING] Could not open aircraft_cache.txt.");
+        return cached_aircrafts;
     }
 
-    log_message("Successfully wrote aircraft data to cache.");
+    std::string line;
+    while (std::getline(file, line)) {
+        Aircraft ac;
+        sscanf(line.c_str(), "%s | %d ft | %d knots | %lf,%lf", ac.flight, &ac.altitude, &ac.speed, &ac.latitude, &ac.longitude);
+        cached_aircrafts.push_back(ac);
+    }
+
+    log_message("[INFO] Loaded cached aircraft data.");
+    return cached_aircrafts;
 }

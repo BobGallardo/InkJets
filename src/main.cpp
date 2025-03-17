@@ -1,44 +1,51 @@
 #include "adsb_parser.h"
 #include "utils.h"
-#include <iostream>
 #include <vector>
+#include <iostream>
 #include <thread>
 #include <chrono>
 
-// Function to handle ADS-B data retrieval
+// Define your home coordinates (set to a test location for now)
+constexpr double HOME_LAT = 37.3243;  // Example: Cupertino, CA
+constexpr double HOME_LON = -122.0561;
+
+/**
+ * Fetches live ADS-B data, filters aircraft within 25 miles, and prints results.
+ */
 void adsb_worker(std::vector<Aircraft>& aircrafts) {
-    initialize_adsb();
-    
     while (true) {
-        aircrafts = fetch_adsb_data();
-        aircrafts = filter_aircrafts(aircrafts);
-        store_data(aircrafts);
-        std::this_thread::sleep_for(std::chrono::seconds(10)); // Update every 10s
+        aircrafts = fetch_adsb_data();  // Get live aircraft data
+        aircrafts = filter_aircrafts(aircrafts, HOME_LAT, HOME_LON);  // Filter by location
+        store_data(aircrafts);  // Cache filtered aircraft data
+
+        std::this_thread::sleep_for(std::chrono::seconds(10));  // Fetch new data every 10 sec
     }
 }
 
-// Function to handle displaying aircraft information
+/**
+ * Displays aircraft data to the console.
+ */
 void display_worker(const std::vector<Aircraft>& aircrafts) {
     std::cout << "\n===== Flight Information =====\n";
     for (const auto& ac : aircrafts) {
-        std::cout << "Flight: " << ac.flight << " | Alt: " << ac.altitude 
-                  << " ft | Speed: " << ac.speed << " knots\n";
+        std::cout << "Flight: " << ac.flight 
+                  << " | Alt: " << ac.altitude << " ft"
+                  << " | Speed: " << ac.speed << " knots"
+                  << " | Location: " << ac.latitude << "," << ac.longitude << "\n";
     }
     std::cout << "==============================\n";
 }
 
 int main() {
-    log_message("Initializing ADS-B data processing...");
     std::vector<Aircraft> aircrafts;
 
-    // Launch data processing thread
-    std::thread adsb_thread(adsb_worker, std::ref(aircrafts));
+    std::thread adsbThread(adsb_worker, std::ref(aircrafts));
 
     while (true) {
-        display_worker(aircrafts);
-        std::this_thread::sleep_for(std::chrono::seconds(5)); // Refresh display every 5s
+        std::this_thread::sleep_for(std::chrono::seconds(10));
+        display_worker(aircrafts);  // Show aircraft data in console
     }
 
-    adsb_thread.join();
+    adsbThread.join();
     return 0;
 }
