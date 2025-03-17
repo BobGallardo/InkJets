@@ -1,146 +1,65 @@
-# InkJets - ADS-B E-Ink Flight Display
+# InkJets
 
-## Project Overview
+InkJets is a lightweight ADS-B receiver application designed to display real-time aircraft information within a set radius of a given location. It is built for Raspberry Pi but can be compiled on other Linux systems as well.
 
-InkJets is a **C++ application** designed to run on a **Raspberry Pi** with an **ADS-B USB adapter** and an **e-ink display**. It captures live flight data from aircraft within a **25-mile radius** of a fixed location and displays relevant flight information on an e-ink screen.
+## Features
+- Fetches real-time ADS-B aircraft data from an RTL-SDR dongle.
+- Filters aircraft within a specified distance from a home location.
+- Displays aircraft data dynamically using `ncurses`.
+- Optionally caches aircraft data for offline review.
 
-This project is a **gift** for my wife, who enjoys looking up information about planes that fly overhead.
+## Prerequisites
+To compile and run `InkJets`, ensure your system meets the following requirements:
 
----
+### Hardware
+- Raspberry Pi (or any Linux system with an RTL-SDR dongle)
+- RTL2832U-based SDR USB receiver
 
-## Hardware Requirements
-
-- **Raspberry Pi** (Pi 4, Pi 5, or Raspberry Pi 500)  
-- **ADS-B USB Adapter** (e.g., RTL-SDR dongle with an appropriate antenna)  
-- **E-Ink Display** (e.g., Waveshare 7.5" e-paper display)  
-- **MicroSD Card** (for Raspberry Pi OS)  
-- **Power Supply** (suitable for Raspberry Pi model)  
-
----
-
-## Software Components
-
-### 1. ADS-B Data Source
-
-- **`dump1090` or `readsb`** will process raw ADS-B signals from the USB adapter.
-- A **C++ parser** will extract relevant flight data from the output.
-
-### 2. Flight Data Processing
-
-- The application will **filter aircraft within a 25-mile radius** of a defined home GPS coordinate.
-- Extract key details such as:
-  - Flight Number
-  - Aircraft Type
-  - Altitude
-  - Speed
-  - Heading
-- A lightweight **SQLite database** may be used for caching or storing flight history.
-
-### 3. E-Ink Display Integration
-
-- The display will be **updated periodically** (e.g., every minute).
-- It will communicate over **SPI/I2C**, using a **C++ driver** to manage rendering.
-- The interface will be optimized to minimize **ghosting and refresh delays**.
-
-### 4. C++ Development
-
-- **Multithreading** will be used to separate ADS-B data processing and e-ink updates.
-- **Memory and CPU efficiency** will be prioritized to ensure smooth operation on a Raspberry Pi.
-- **Logging & Debugging** will be implemented for easy monitoring and troubleshooting.
-
----
-
-## Implementation
-
-### 1. Core Components
-
-- **ADS-B Data Retrieval:** Capture real-time aircraft data using `librtlsdr` and `dump1090`.
-- **Data Filtering:** Identify aircraft within the 25-mile radius.
-- **Data Processing:** Convert ADS-B signals into a structured format.
-- **E-Ink Rendering:** Display filtered aircraft data in a readable format.
-- **Multithreading:** Ensure smooth operation by handling data retrieval and display updates concurrently.
-
-### 2. Directory Structure
-
-```bash
-InkJets/
-├── src/
-│   ├── main.cpp  # Entry point
-│   ├── adsb_parser.cpp  # Parses ADS-B data
-│   ├── display.cpp  # Handles e-ink rendering
-│   ├── utils.cpp  # Helper functions
-├── include/
-│   ├── adsb_parser.h
-│   ├── display.h
-│   ├── utils.h
-├── assets/
-│   ├── fonts/  # Font files for e-ink display
-│   ├── icons/  # Optional icons for UI
-├── CMakeLists.txt  # Build configuration
-├── README.md  # Documentation
+### Software
+Install the required dependencies:
+```sh
+sudo apt update && sudo apt install -y git build-essential cmake libncurses5-dev rtl-sdr
 ```
 
----
-
-## End-User Setup Instructions
-
-### 1. Update the System
-
-```bash
-sudo apt update && sudo apt upgrade -y
-```
-
-### 2. Install Required Libraries
-
-```bash
-sudo apt install librtlsdr-dev libusb-1.0-0-dev sqlite3 libsqlite3-dev libspdlog-dev wiringpi libwiringpi-dev libboost-dev
-```
-
-### 3. Enable SPI/I2C on Raspberry Pi
-
-```bash
-sudo raspi-config
-```
-
-- Go to **Interfacing Options**
-- Enable **SPI** and **I2C**
-- Reboot the system:
-
-```bash
-sudo reboot
-```
-
-### 4. Clone the Project Repository
-
-```bash
+## Installation
+Clone the repository and build the application:
+```sh
 git clone https://github.com/BobGallardo/InkJets.git
 cd InkJets
-```
-
-### 5. Compile the Project
-
-```bash
 mkdir build && cd build
 cmake ..
 make
 ```
 
-### 6. Run the Application
-
-```bash
-./adsb_display
+## Running the Application
+Run `InkJets` after ensuring the SDR device is properly connected:
+```sh
+./InkJets
 ```
 
----
+## Configuration
+Modify the `HOME_LAT` and `HOME_LON` values in `utils.h` to match your desired location:
+```cpp
+constexpr double HOME_LAT = 37.3243;  // Example: Cupertino, CA
+constexpr double HOME_LON = -122.0561;
+```
 
-## Future Enhancements
+## Troubleshooting
+### RTL-SDR Not Detected
+If the device is not detected, try:
+```sh
+sudo systemctl stop dump1090-fa
+rtl_test -t
+```
 
-- **Live Flight Info:** Integrate with an online API (e.g., ADS-B Exchange or FlightAware).
-- **Weather Integration:** Display local weather alongside flight data.
-- **Historical Data:** Store flight logs to analyze past flights.
-
----
+### Missing ADS-B Data
+Ensure `dump1090-fa` is running and configured correctly:
+```sh
+sudo systemctl start dump1090-fa
+```
 
 ## License
+InkJets is released under the MIT License.
 
-This project is released under the MIT License.
+## Author
+Developed by Bob Gallardo.
