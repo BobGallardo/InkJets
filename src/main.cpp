@@ -1,6 +1,6 @@
 #include "adsb_parser.h"
-#include "display.h"  // Ensure this is included
-#include "utils.h"    // Ensure this is included
+#include "display.h"
+#include "utils.h"
 #include <iostream>
 #include <thread>
 #include <vector>
