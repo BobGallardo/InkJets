@@ -5,10 +5,6 @@
 #include <thread>
 #include <chrono>
 
-// Define your home coordinates (set to a test location for now)
-constexpr double HOME_LAT = 37.3243;  // Example: Cupertino, CA
-constexpr double HOME_LON = -122.0561;
-
 /**
  * Fetches live ADS-B data, filters aircraft within 25 miles, and prints results.
  */

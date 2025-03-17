@@ -24,5 +24,5 @@ set(SRC_FILES
 add_executable(InkJets ${SRC_FILES})
 
 # Link required libraries
-target_link_libraries(InkJets rtlsdr usb-1.0 sqlite3 pthread)
+target_link_libraries(InkJets rtlsdr usb-1.0 sqlite3 pthread ncurses)
 

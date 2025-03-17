@@ -2,11 +2,18 @@
 #define DISPLAY_H
 
 #include <vector>
-#include <string>
 #include "adsb_parser.h"
 
-// Function prototypes for console output
+// Initialize ncurses display
 void initialize_display();
+
+// Render a formatted table of flight data
 void render_display(const std::vector<Aircraft>& aircrafts);
+
+// Render an ASCII radar for aircraft positions
+void render_ascii_radar(const std::vector<Aircraft>& aircrafts);
+
+// Close ncurses display
+void close_display();
 
 #endif // DISPLAY_H
