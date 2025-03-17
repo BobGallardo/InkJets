@@ -1,42 +1,44 @@
 #include "adsb_parser.h"
-#include "display.h"
 #include "utils.h"
 #include <iostream>
-#include <thread>
 #include <vector>
+#include <thread>
+#include <chrono>
 
-// Function handling ADS-B data retrieval
+// Function to handle ADS-B data retrieval
 void adsb_worker(std::vector<Aircraft>& aircrafts) {
     initialize_adsb();
+    
     while (true) {
         aircrafts = fetch_adsb_data();
         aircrafts = filter_aircrafts(aircrafts);
         store_data(aircrafts);
-        std::this_thread::sleep_for(std::chrono::seconds(10)); // Refresh every 10 sec
+        std::this_thread::sleep_for(std::chrono::seconds(10)); // Update every 10s
     }
 }
 
-// Function handling display updates
+// Function to handle displaying aircraft information
 void display_worker(const std::vector<Aircraft>& aircrafts) {
-    initialize_display();  // Now declared correctly
-    while (true) {
-        std::vector<Aircraft> data = load_cached_data();  // Now declared correctly
-        render_display(data);  // Now declared correctly
-        std::this_thread::sleep_for(std::chrono::minutes(1)); // Update every minute
+    std::cout << "\n===== Flight Information =====\n";
+    for (const auto& ac : aircrafts) {
+        std::cout << "Flight: " << ac.flight << " | Alt: " << ac.altitude 
+                  << " ft | Speed: " << ac.speed << " knots\n";
     }
+    std::cout << "==============================\n";
 }
 
 int main() {
+    log_message("Initializing ADS-B data processing...");
     std::vector<Aircraft> aircrafts;
 
-    // Start ADS-B worker thread
+    // Launch data processing thread
     std::thread adsb_thread(adsb_worker, std::ref(aircrafts));
 
-    // Start display worker thread
-    std::thread display_thread(display_worker, std::cref(aircrafts));
+    while (true) {
+        display_worker(aircrafts);
+        std::this_thread::sleep_for(std::chrono::seconds(5)); // Refresh display every 5s
+    }
 
     adsb_thread.join();
-    display_thread.join();
-
     return 0;
 }

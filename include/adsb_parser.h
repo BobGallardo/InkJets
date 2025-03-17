@@ -1,28 +1,21 @@
 #ifndef ADSB_PARSER_H
 #define ADSB_PARSER_H
-void initialize_adsb();
 
-#include <string>
 #include <vector>
-#include <fstream>
-#include <iostream>
-#include <nlohmann/json.hpp> // Requires json.hpp library
+#include <string>
 
-using json = nlohmann::json;
-
+// Aircraft data structure
 struct Aircraft {
-    std::string hex;
     std::string flight;
     int altitude;
-    double speed;
-    double lat;
-    double lon;
-    double heading;
+    int speed;
+    int heading;
 };
 
-// Function prototypes
+// Function declarations
+void initialize_adsb();
 std::vector<Aircraft> fetch_adsb_data();
 std::vector<Aircraft> filter_aircrafts(const std::vector<Aircraft>& aircrafts);
-void store_data(const std::vector<Aircraft>& aircrafts);
+void store_data(const std::vector<Aircraft>& aircraftList);
 
-#endif
+#endif // ADSB_PARSER_H

@@ -1,25 +1,14 @@
 #include "utils.h"
 #include <iostream>
 #include <fstream>
+#include <ctime>
 
+// Log messages with timestamps
 void log_message(const std::string& message) {
-    std::cerr << "[LOG] " << message << std::endl;
-}
-
-std::vector<Aircraft> load_cached_data() {
-    std::vector<Aircraft> cached_data;
-    std::ifstream file("aircraft_cache.txt");
-
-    if (!file.is_open()) {
-        log_message("Warning: Could not open aircraft_cache.txt");
-        return cached_data;
-    }
-
-    Aircraft aircraft;
-    while (file >> aircraft.flight >> aircraft.altitude >> aircraft.speed) {
-        cached_data.push_back(aircraft);
-    }
-
-    file.close();
-    return cached_data;
+    std::ofstream logFile("log.txt", std::ios_base::app);
+    std::time_t now = std::time(nullptr);
+    std::string timeStr = std::ctime(&now);
+    timeStr.pop_back(); // Remove newline
+    std::cout << "[" << timeStr << "] " << message << std::endl;
+    logFile << "[" << timeStr << "] " << message << std::endl;
 }
