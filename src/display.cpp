@@ -7,10 +7,10 @@
 
 // Initialize ncurses display
 void initialize_display() {
-    initscr();  // Start ncurses mode
-    cbreak();   // Disable line buffering
-    noecho();   // Do not echo user input
-    curs_set(0); // Hide cursor
+    initscr();
+    cbreak();
+    noecho();
+    curs_set(0);
     refresh();
 }
 
@@ -22,7 +22,7 @@ std::string format_number(int num) {
     return ss.str();
 }
 
-// Render a dynamic ncurses table for flight information
+// Render ncurses table for flight data
 void render_display(const std::vector<Aircraft>& aircrafts) {
     clear();
     mvprintw(1, 2, "===== Flight Information =====");
@@ -40,19 +40,6 @@ void render_display(const std::vector<Aircraft>& aircrafts) {
     }
 
     mvprintw(row + 2, 2, "Press 'q' to quit.");
-    refresh();
-}
-
-// Render a simple ASCII radar for aircraft positions
-void render_ascii_radar(const std::vector<Aircraft>& aircrafts) {
-    int center_x = 40, center_y = 10; // Radar center
-    mvprintw(center_y, center_x, "+"); // Center point
-
-    for (const auto& ac : aircrafts) {
-        int dx = static_cast<int>((ac.longitude - HOME_LON) * 5); // Fix variable name
-        int dy = static_cast<int>((ac.latitude - HOME_LAT) * 5); // Fix variable name
-        mvprintw(center_y - dy, center_x + dx, "*");
-    }
     refresh();
 }
 

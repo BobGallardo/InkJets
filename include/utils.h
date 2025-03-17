@@ -3,12 +3,13 @@
 
 #include <string>
 #include <vector>
+#include <cmath>
 
-// Define home GPS coordinates (Set to your location)
-constexpr double HOME_LAT = 37.3243;  // Cupertino, CA
-constexpr double HOME_LON = -122.0561; // Corrected to match `display.cpp`
+// Declare `HOME_LAT` and `HOME_LON` as extern so they can be modified at runtime
+extern double HOME_LAT;
+extern double HOME_LON;
 
-// Function prototypes
 void log_message(const std::string& message);
+double calculate_distance(double lat1, double lon1, double lat2, double lon2);
 
-#endif // UTILS_H
+#endif
